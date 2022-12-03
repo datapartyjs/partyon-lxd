@@ -1,6 +1,4 @@
-## PartyOn
-
-[![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+## PartyOn [![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)](https://github.com/emersion/stability-badges#experimental)
 
  * [PartyOn](https://partyon.xyz/about)
 
