@@ -1,0 +1,46 @@
+config:
+  maas.api.key: <<MAAS_API_KEY>>
+  maas.api.url: <<MAAS_API_URL>>
+networks:
+- config:
+    ipv4.nat: "true"
+    ipv6.nat: "true"
+  description: ""
+  name: lxdbr0
+  type: bridge
+  project: default
+storage_pools:
+- config:
+    size: 40GiB
+    source: /var/snap/lxd/common/lxd/disks/default.img
+    zfs.pool_name: default
+  description: ""
+  name: default
+  driver: zfs
+- config:
+    source: /storage_raid/lxd
+  description: ""
+  name: storage_raid
+  driver: dir
+profiles:
+- config: {}
+  description: Default LXD profile
+  devices:
+    eth0:
+      name: eth0
+      network: lxdbr0
+      type: nic
+    root:
+      path: /
+      pool: default
+      type: disk
+  name: default
+projects:
+- config:
+    features.images: "true"
+    features.networks: "true"
+    features.profiles: "true"
+    features.storage.volumes: "true"
+  description: Default LXD project
+  name: default
+

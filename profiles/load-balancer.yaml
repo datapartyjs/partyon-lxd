@@ -1,0 +1,156 @@
+name: load-balancer
+
+description: load-balancer for partyon cloud services
+devices:
+  eth0:
+    name: eth0
+    nictype: macvlan
+    parent: enp2s0f0
+    type: nic
+  eth1:
+    name: eth1
+    nictype: macvlan
+    parent: enp2s0f1
+    type: nic
+  root:
+    path: /
+    pool: storage_raid
+    type: disk
+  data:
+    path: /data/mastodon
+    pool: storage_raid
+    source: mastodon_data
+    type: disk
+config:
+  boot.autostart: true
+  limits.cpu: 4
+  user.network-config: |
+    version: 1
+    config:
+      - type: physical
+        name: eth0
+        subnets:
+          - type: dhcp
+            ipv4: true
+      - type: physical
+        name: eth1
+        subnets:
+          - type: dhcp
+            ipv4: true
+  user.user-data: |
+    #cloud-config
+    package_upgrade: true
+    packages:
+      - haproxy
+    write_files:
+      - content: |
+          global
+            log /dev/log	local0
+            log /dev/log	local1 notice
+            chroot /var/lib/haproxy
+            stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+            stats timeout 30s
+            user haproxy
+            group haproxy
+            daemon
+
+            # Default SSL material locations
+            ca-base /etc/ssl/certs
+            crt-base /etc/haproxy/certs/
+
+            # See: https://ssl-config.mozilla.org/#server=haproxy&server-version=2.0.3&config=intermediate
+            ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+            ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+            ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
+
+          defaults
+            log	global
+            mode	http
+            option	httplog
+            option	dontlognull
+            #timeout connect 5000
+            timeout client  50000
+            timeout server  50000
+            errorfile 400 /etc/haproxy/errors/400.http
+            errorfile 403 /etc/haproxy/errors/403.http
+            errorfile 408 /etc/haproxy/errors/408.http
+            errorfile 500 /etc/haproxy/errors/500.http
+            errorfile 502 /etc/haproxy/errors/502.http
+            errorfile 503 /etc/haproxy/errors/503.http
+            errorfile 504 /etc/haproxy/errors/504.http
+
+          frontend https
+            mode tcp
+            bind *:443 ssl crt /etc/haproxy/server.pem
+            option forwardfor
+            #option httplog
+            option tcplog
+
+            acl mastodon hdr(host) -i partyon.xyz
+            use_backend mastodon_servers if mastodon
+            default_backend mastodon_servers 
+
+          backend mastodon_servers
+            balance roundrobin
+            stick-table type ip size 1m expire 1h
+            stick on src
+            timeout connect 1000
+            server srv1 172.16.222.75:443 send-proxy check
+        path: /tmp/haproxy.cfg
+      - content: |
+          #!/bin/bash
+
+          mkdir -p /etc/haproxy/certs
+
+          cd /etc/haproxy/certs
+
+          # Generate self signed root CA cert
+          openssl req -nodes -x509 -newkey rsa:2048 -keyout ca.key -out ca.crt -subj "/C=AU/ST=NSW/L=Sydney/O=HAProxy/OU=root/CN=`hostname -f`/emailAddress=self@<<MASTODON_DOMAIN>>"
+
+
+          # Generate server cert to be signed
+          openssl req -nodes -newkey rsa:2048 -keyout server.key -out server.csr -subj "/C=AU/ST=NSW/L=Sydney/O=HAProxy/OU=server/CN=`hostname -f`/emailAddress=self@<<MASTODON_DOMAIN>>"
+
+          # Sign the server cert
+          openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt
+
+          cat server.key server.crt > server.pem
+
+          # Generate mastodon-server cert to be signed
+          openssl req -nodes -newkey rsa:2048 -keyout mastodon-server.key -out mastodon-server.csr -subj "/C=AU/ST=NSW/L=Sydney/O=Mastodon/OU=server/CN=`hostname -f`/emailAddress=self@<<MASTODON_DOMAIN>>"
+
+          # Sign the server cert
+          openssl x509 -req -in mastodon-server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out mastodon-server.crt
+
+          # Create server PEM file
+          cat mastodon-server.key mastodon-server.crt > mastodon-server.pem
+
+          cat ca.key ca.crt > ca.pem
+
+          cp ./server.pem ..
+          cp ./ca.pem ..
+
+          chown haproxy /etc/haproxy/server.pem
+          chmod 550 /etc/haproxy/server.pem
+
+          chown haproxy /etc/haproxy/ca.pem
+          chmod 550 /etc/haproxy/ca.pem
+          cp /tmp/haproxy.cfg /etc/haproxy/
+        path: /opt/setup-haproxy.sh
+        permissions: '0755'
+        owner: root:root
+    runcmd:
+      - "#ip link set dev eth0 down"
+      - "#ip link set dev eth0 address XX:XX:XX:XX:XX:XX"
+      - "#ip link set dev eth0 up"
+      - "sudo bash /opt/setup-haproxy.sh 2> /tmp/install-error-log.txt 1> /tmp/install-log.txt"
+      - "sudo service haproxy restart"
+    users:
+     - name: <<DEVOPS_USER>>
+       gecos: <<DEVOPS_USER>>
+       sudo: ALL=(ALL) NOPASSWD:ALL
+       shell: /bin/bash
+       groups: ubuntu, adm, dialout, sudo, netdev, plugdev, mastodon_data
+       lock_passwd: true
+       ssh-authorized-keys:
+         - <<DEVOPS_SSH_PUBLIC>>
