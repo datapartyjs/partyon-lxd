@@ -145,7 +145,7 @@ config:
       - >
         echo "listen_addresses = '*'" >> /etc/postgresql/15/main/postgresql.conf
       - >
-        echo "host    all             all             172.16.0.1/16           password" >> /etc/postgresql/15/main/pg_hba.conf
+        echo "host    all             all             <<POSTGRES_LAN>>           password" >> /etc/postgresql/15/main/pg_hba.conf
       - "service postgresql stop"
       - "sudo mv /var/lib/postgresql/15 /data/postgresql"
       - "ln -s /data/postgresql/15 /var/lib/postgresql/15"

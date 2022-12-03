@@ -95,7 +95,7 @@ config:
             stick-table type ip size 1m expire 1h
             stick on src
             timeout connect 1000
-            server srv1 172.16.222.75:443 send-proxy check
+            <<MASTODON_SERVER_IPS>
         path: /tmp/haproxy.cfg
       - content: |
           #!/bin/bash
