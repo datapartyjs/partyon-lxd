@@ -16,6 +16,14 @@
 This repo contains LXD profiles which can be used to rapidly deploy Mastodon onto an LXD cluster.
 
 
+## Support
+
+You can support the [PartyOn](https://partyon.xyz/about) instance by donation below.
+
+ * [Patreon](https://www.patreon.com/nullagent)
+ * [Liberpay](https://liberapay.com/nullagent)
+ * [GitHub Sponsors](https://github.com/sponsors/sevenbitbyte)
+
 
 
 ## Container Profiles
@@ -65,10 +73,3 @@ The profiles are manually managed. You need to replace these values with correct
  * `update-lxc-host.sh`
 
 
-## Support
-
-You can support the [PartyOn](https://partyon.xyz/about) instance by donation below.
-
- * [Patreon](https://www.patreon.com/nullagent)
- * [Liberpay](https://liberapay.com/nullagent)
- * [GitHub Sponsors](https://github.com/sponsors/sevenbitbyte)
