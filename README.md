@@ -67,7 +67,7 @@ The profiles are manually managed. You need to replace these values with correct
 
 ## Support
 
-You can support the  * [PartyOn](https://partyon.xyz/about) instance by donation below.
+You can support the [PartyOn](https://partyon.xyz/about) instance by donation below.
 
  * [Patreon](https://www.patreon.com/nullagent)
  * [Liberpay](https://liberapay.com/nullagent)
