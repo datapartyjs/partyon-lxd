@@ -4,7 +4,7 @@
 
 
 
-![](images/partyon-glitch-w-url-black-tight.png)
+![](images/party-on.gif)
 
 
 
