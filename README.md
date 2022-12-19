@@ -13,7 +13,7 @@
 
 This repo contains LXD profiles which can be used to rapidly deploy Mastodon onto an LXD cluster.
 
-Don't want to wrangle servers? -> See [Managed Mastodon](https://my.partyon.xyz/)
+Don't want to wrangle servers? See [Managed Mastodon](https://my.partyon.xyz/)
 
 
 ## Support
