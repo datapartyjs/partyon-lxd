@@ -21,7 +21,7 @@ Don't want to wrangle servers? See [Managed Mastodon](https://my.partyon.xyz/)
 You can support the [PartyOn](https://partyon.xyz/about) instance by donation below.
 
  * [Patreon](https://www.patreon.com/nullagent)
- * [Liberpay](https://liberapay.com/nullagent)
+ * [Liberpay](https://liberapay.com/dataparty)
  * [GitHub Sponsors](https://github.com/sponsors/sevenbitbyte)
 
 
